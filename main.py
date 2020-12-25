@@ -1,6 +1,7 @@
 import time
 from collections import namedtuple
 from pathlib import Path
+from configparser import ConfigParser
 
 import pywintypes
 import win32api
@@ -41,7 +42,17 @@ def main():
         print(test_drive(drive))
         try:
             label = get_volume_label(f"{drive}\\")
-            drive_info[label] = list_files_in_drive(drive)
+            files = list_files_in_drive(drive)
+            drive_info[label] = files
+            autorun_file = Path(f"{drive}Autorun.inf")
+            if autorun_file.is_file():
+                    parser = ConfigParser()
+                    parser.read_string(autorun_file.read_text(encoding='utf-8'))
+                    autorun_label = parser['autorun']['label']
+                    print(f"autorun label: {autorun_label}")
+                    print(f"Standard label: {label}")
+                    print(f"List of files: {files}")
+
         except pywintypes.error as err:
             print(err)
 
