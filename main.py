@@ -38,6 +38,10 @@ def save_to_iso(drive: str, output_file: Path):
     proc.wait()
     status = proc.poll()
     print(f"Status: {status}")
+    if status:
+        raise ValueError(f"Status error: {status}")
+    else:
+        print("All fine")
 
 
 def list_files_in_drive(drive_letter):
@@ -46,7 +50,9 @@ def list_files_in_drive(drive_letter):
 
 # noinspection PyUnresolvedReferences
 def process_drive(drive: str, output_folder: Path):
-    print(test_drive(drive))
+    if not test_drive(drive):
+        print(f"Drive is not ready yet...")
+        return
     try:
         label = get_volume_label(f"{drive}\\")
         files = list_files_in_drive(drive)
@@ -62,14 +68,17 @@ def process_drive(drive: str, output_folder: Path):
         print(f"Standard label: {label}")
         print(f"List of files: {files}")
         text_for_files = "\r\n".join(str(file) for file in files)
-        files_hash = hashlib.sha512(text_for_files)
+        files_hash = hashlib.md5(text_for_files.encode('utf-8')).hexdigest()
         iso_folder = output_folder / f"{label}_{files_hash}"
+        print(f"Iso folder: {iso_folder}")
         iso_folder.mkdir(parents=True)
         output_file = iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso")
         save_to_iso(drive, output_file=output_file)
         (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
 
     except pywintypes.error as err:
+        print(err)
+    except ValueError as err:
         print(err)
 
 
