@@ -43,31 +43,38 @@ def save_to_iso(drive, label, autorun_label, output_folder: Path):
     print("Status: {}".format(status))
 
 
-def list_files_in_drive(current_letter):
-    return list(Path(current_letter).rglob("*.*"))
+def list_files_in_drive(drive_letter):
+    return list(Path(drive_letter).rglob("*.*"))
 
 
 # noinspection PyUnresolvedReferences
+def process_drive(drive, output_folder):
+    print(test_drive(drive))
+    try:
+        label = get_volume_label(f"{drive}\\")
+        files = list_files_in_drive(drive)
+        drive_info[label] = files
+        autorun_file = Path(f"{drive}Autorun.inf")
+        if autorun_file.is_file():
+            parser = ConfigParser()
+            parser.read_string(autorun_file.read_text(encoding='utf-8'))
+            autorun_label = parser['autorun']['label']
+        else:
+            autorun_label = "NO_AUTORUN_LABEL"
+
+        print(f"autorun label: {autorun_label}")
+        print(f"Standard label: {label}")
+        print(f"List of files: {files}")
+        save_to_iso(drive, label, autorun_label, output_folder=output_folder)
+
+    except pywintypes.error as err:
+        print(err)
+
+
 def main():
     drive = "D:"
     while True:
-        print(test_drive(drive))
-        try:
-            label = get_volume_label(f"{drive}\\")
-            files = list_files_in_drive(drive)
-            drive_info[label] = files
-            autorun_file = Path(f"{drive}Autorun.inf")
-            if autorun_file.is_file():
-                parser = ConfigParser()
-                parser.read_string(autorun_file.read_text(encoding='utf-8'))
-                autorun_label = parser['autorun']['label']
-                print(f"autorun label: {autorun_label}")
-                print(f"Standard label: {label}")
-                print(f"List of files: {files}")
-                save_to_iso(drive, label, autorun_label, output_folder=Path(r"C:\Users\Shan\Documents"))
-
-        except pywintypes.error as err:
-            print(err)
+        process_drive(drive, output_folder=Path(r"C:\Users\Shan\Documents"))
 
         time.sleep(TIMEOUT_SLEEP)
 
