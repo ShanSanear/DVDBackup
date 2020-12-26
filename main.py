@@ -3,13 +3,11 @@ import time
 from collections import namedtuple
 from pathlib import Path
 from configparser import ConfigParser
+import hashlib
 
 import pywintypes
 import win32api
-
 import win32file
-
-drive_info = {}
 
 TIMEOUT_SLEEP = 5
 
@@ -21,7 +19,7 @@ def get_volume_label(*args, **kwargs):
     return volume_information.Label
 
 
-def test_drive(current_letter):
+def test_drive(current_letter: str):
     try:
         win32file.GetDiskFreeSpaceEx(current_letter)
     except win32api.error as err:
@@ -32,15 +30,14 @@ def test_drive(current_letter):
     return is_drive_available
 
 
-def save_to_iso(drive, label, autorun_label, output_folder: Path):
-    file_name = Path(f"{label}_{autorun_label}").with_suffix(".iso")
+def save_to_iso(drive: str, output_file: Path):
     params = [r"C:\Programs\ImgBurn\ImgBurn.exe", "/MODE", "READ", "/SRC", drive, "/DEST",
-              str(output_folder / file_name), "/EJECT", "/START", "/CLOSE", "/WAITFORMEDIA", "/LOG",
+              str(output_file), "/EJECT", "/START", "/CLOSE", "/WAITFORMEDIA", "/LOG",
               r"C:\temp\test.log", "/LOGHEADER"]
     proc = subprocess.Popen(params, shell=True)
     proc.wait()
     status = proc.poll()
-    print("Status: {}".format(status))
+    print(f"Status: {status}")
 
 
 def list_files_in_drive(drive_letter):
@@ -48,12 +45,11 @@ def list_files_in_drive(drive_letter):
 
 
 # noinspection PyUnresolvedReferences
-def process_drive(drive, output_folder):
+def process_drive(drive: str, output_folder: Path):
     print(test_drive(drive))
     try:
         label = get_volume_label(f"{drive}\\")
         files = list_files_in_drive(drive)
-        drive_info[label] = files
         autorun_file = Path(f"{drive}Autorun.inf")
         if autorun_file.is_file():
             parser = ConfigParser()
@@ -65,7 +61,13 @@ def process_drive(drive, output_folder):
         print(f"autorun label: {autorun_label}")
         print(f"Standard label: {label}")
         print(f"List of files: {files}")
-        save_to_iso(drive, label, autorun_label, output_folder=output_folder)
+        text_for_files = "\r\n".join(str(file) for file in files)
+        files_hash = hashlib.sha512(text_for_files)
+        iso_folder = output_folder / f"{label}_{files_hash}"
+        iso_folder.mkdir(parents=True)
+        output_file = iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso")
+        save_to_iso(drive, output_file=output_file)
+        (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
 
     except pywintypes.error as err:
         print(err)
@@ -75,7 +77,6 @@ def main():
     drive = "D:"
     while True:
         process_drive(drive, output_folder=Path(r"C:\Users\Shan\Documents"))
-
         time.sleep(TIMEOUT_SLEEP)
 
 
