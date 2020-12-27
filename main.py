@@ -32,9 +32,9 @@ def test_drive(current_letter: str):
     return is_drive_available
 
 
-def save_to_iso(img_burn_exe: Path, drive: str, output_file: Path):
-    params = [str(img_burn_exe), "/MODE", "READ", "/SRC", drive, "/DEST",
-              str(output_file), "/EJECT", "/START", "/CLOSE", "/WAITFORMEDIA", "/LOG",
+def save_to_iso(img_burn_exe: str, drive: str, output_file: str):
+    params = [img_burn_exe, "/MODE", "READ", "/SRC", drive, "/DEST",
+              output_file, "/EJECT", "/START", "/CLOSE", "/WAITFORMEDIA", "/LOG",
               r"C:\temp\test.log", "/LOGHEADER"]
     proc = subprocess.Popen(params, shell=True)
     proc.wait()
@@ -51,7 +51,7 @@ def list_files_in_drive(drive_letter):
 
 
 # noinspection PyUnresolvedReferences
-def process_drive(img_burn_exe:Path, drive: str, output_folder: Path):
+def process_drive(img_burn_exe: str, drive: str, output_folder: str):
     if not test_drive(drive):
         print(f"Drive is not ready yet...")
         return
@@ -71,10 +71,10 @@ def process_drive(img_burn_exe:Path, drive: str, output_folder: Path):
         print(f"List of files: {files}")
         text_for_files = "\r\n".join(str(file) for file in files)
         files_hash = hashlib.md5(text_for_files.encode('utf-8')).hexdigest()
-        iso_folder = output_folder / f"{label}_{files_hash}"
+        iso_folder = Path(output_folder) / f"{label}_{files_hash}"
         print(f"Iso folder: {iso_folder}")
         iso_folder.mkdir(parents=True)
-        output_file = iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso")
+        output_file = str(iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso"))
         save_to_iso(img_burn_exe, drive, output_file=output_file)
         (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
 
@@ -84,7 +84,7 @@ def process_drive(img_burn_exe:Path, drive: str, output_folder: Path):
         print(err)
 
 
-def poll_drive_for_backup(img_burn_exe: Path, drive: str, output_folder: Path):
+def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str):
     while True:
         process_drive(img_burn_exe, drive, output_folder=output_folder)
         time.sleep(TIMEOUT_SLEEP)
@@ -92,4 +92,3 @@ def poll_drive_for_backup(img_burn_exe: Path, drive: str, output_folder: Path):
 
 if __name__ == '__main__':
     fire.Fire(poll_drive_for_backup)
-
