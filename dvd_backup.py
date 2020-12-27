@@ -72,13 +72,13 @@ def process_drive(img_burn_exe: str, drive: str, output_folder: str):
         else:
             autorun_label = "NO_AUTORUN_LABEL"
 
-        print(f"autorun label: {autorun_label}")
-        print(f"Standard label: {label}")
+        logging.info(f"autorun label: {autorun_label}")
+        logging.info(f"Standard label: {label}")
         text_for_files = "\r\n".join(str(file) for file in files)
-        print(f"List of files: {text_for_files}")
+        logging.info(f"List of files: {text_for_files}")
         files_hash = hashlib.md5(text_for_files.encode('utf-8')).hexdigest()
         iso_folder = Path(output_folder) / f"{label}_{files_hash}"
-        print(f"Iso folder: {iso_folder}")
+        logging.info(f"Iso folder: {iso_folder}")
         iso_folder.mkdir(parents=True)
         output_file = str(iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso"))
         save_to_iso(img_burn_exe, drive, output_file=output_file)
