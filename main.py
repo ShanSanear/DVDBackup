@@ -9,6 +9,8 @@ import pywintypes
 import win32api
 import win32file
 
+import fire
+
 TIMEOUT_SLEEP = 5
 
 VolumeInformation = namedtuple("VolumeInformation", "Label info1 info2 info3 type")
@@ -30,8 +32,8 @@ def test_drive(current_letter: str):
     return is_drive_available
 
 
-def save_to_iso(drive: str, output_file: Path):
-    params = [r"C:\Programs\ImgBurn\ImgBurn.exe", "/MODE", "READ", "/SRC", drive, "/DEST",
+def save_to_iso(img_burn_exe: Path, drive: str, output_file: Path):
+    params = [str(img_burn_exe), "/MODE", "READ", "/SRC", drive, "/DEST",
               str(output_file), "/EJECT", "/START", "/CLOSE", "/WAITFORMEDIA", "/LOG",
               r"C:\temp\test.log", "/LOGHEADER"]
     proc = subprocess.Popen(params, shell=True)
@@ -49,7 +51,7 @@ def list_files_in_drive(drive_letter):
 
 
 # noinspection PyUnresolvedReferences
-def process_drive(drive: str, output_folder: Path):
+def process_drive(img_burn_exe:Path, drive: str, output_folder: Path):
     if not test_drive(drive):
         print(f"Drive is not ready yet...")
         return
@@ -73,7 +75,7 @@ def process_drive(drive: str, output_folder: Path):
         print(f"Iso folder: {iso_folder}")
         iso_folder.mkdir(parents=True)
         output_file = iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso")
-        save_to_iso(drive, output_file=output_file)
+        save_to_iso(img_burn_exe, drive, output_file=output_file)
         (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
 
     except pywintypes.error as err:
@@ -82,12 +84,12 @@ def process_drive(drive: str, output_folder: Path):
         print(err)
 
 
-def main():
-    drive = "D:"
+def poll_drive_for_backup(img_burn_exe: Path, drive: str, output_folder: Path):
     while True:
-        process_drive(drive, output_folder=Path(r"C:\Users\Shan\Documents"))
+        process_drive(img_burn_exe, drive, output_folder=output_folder)
         time.sleep(TIMEOUT_SLEEP)
 
 
 if __name__ == '__main__':
-    main()
+    fire.Fire(poll_drive_for_backup)
+
