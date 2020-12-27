@@ -58,36 +58,30 @@ def process_drive(img_burn_exe: str, drive: str, output_folder: str):
     if not test_drive(drive):
         logging.info("Waiting for drive: %s to be ready", drive)
         return
-    try:
-        label = get_volume_label(f"{drive}\\")
-        files = list_files_in_drive(drive)
-        autorun_file = Path(f"{drive}Autorun.inf")
-        if autorun_file.is_file():
-            parser = ConfigParser()
-            parser.read_string(autorun_file.read_text(encoding='utf-8').lower())
-            if 'label' in parser['autorun']:
-                autorun_label = parser['autorun']['label'].upper()
-            else:
-                autorun_label = "NO_AUTORUN_LABEL"
+    label = get_volume_label(f"{drive}\\")
+    files = list_files_in_drive(drive)
+    autorun_file = Path(f"{drive}Autorun.inf")
+    if autorun_file.is_file():
+        parser = ConfigParser()
+        parser.read_string(autorun_file.read_text(encoding='utf-8').lower())
+        if 'label' in parser['autorun']:
+            autorun_label = parser['autorun']['label'].upper()
         else:
             autorun_label = "NO_AUTORUN_LABEL"
+    else:
+        autorun_label = "NO_AUTORUN_LABEL"
 
-        logging.info(f"autorun label: {autorun_label}")
-        logging.info(f"Standard label: {label}")
-        text_for_files = "\r\n".join(str(file) for file in files)
-        logging.info(f"List of files: {text_for_files}")
-        files_hash = hashlib.md5(text_for_files.encode('utf-8')).hexdigest()
-        iso_folder = Path(output_folder) / f"{label}_{files_hash}"
-        logging.info(f"Iso folder: {iso_folder}")
-        iso_folder.mkdir(parents=True)
-        output_file = str(iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso"))
-        save_to_iso(img_burn_exe, drive, output_file=output_file)
-        (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
-
-    except pywintypes.error as err:
-        logging.debug(err)
-    except ValueError as err:
-        logging.debug(err)
+    logging.info(f"autorun label: {autorun_label}")
+    logging.info(f"Standard label: {label}")
+    text_for_files = "\r\n".join(str(file) for file in files)
+    logging.info(f"List of files: {text_for_files}")
+    files_hash = hashlib.md5(text_for_files.encode('utf-8')).hexdigest()
+    iso_folder = Path(output_folder) / f"{label}_{files_hash}"
+    logging.info(f"Iso folder: {iso_folder}")
+    iso_folder.mkdir(parents=True)
+    output_file = str(iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso"))
+    save_to_iso(img_burn_exe, drive, output_file=output_file)
+    (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
 
 
 def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str):
