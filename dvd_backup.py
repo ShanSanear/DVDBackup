@@ -64,7 +64,11 @@ def backup_disk(autorun_label, drive, img_burn_exe, output_folder):
     iso_folder = Path(output_folder) / f"{label}_{files_hash}"
     logging.info(f"Iso folder: {iso_folder}")
     iso_folder.mkdir(parents=True)
-    output_file = str(iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso"))
+    if autorun_label:
+        file_name = Path(f"{label}_{autorun_label}").with_suffix(".iso")
+    else:
+        file_name = Path(f"{label}").with_suffix(".iso")
+    output_file = str(iso_folder / file_name)
     try:
         save_to_iso(img_burn_exe, drive, output_file=output_file)
     except ValueError:
@@ -83,9 +87,9 @@ def process_drive(img_burn_exe: str, drive: str, output_folder: str):
         if 'label' in parser['autorun']:
             autorun_label = parser['autorun']['label'].upper()
         else:
-            autorun_label = "NO_AUTORUN_LABEL"
+            autorun_label = ""
     else:
-        autorun_label = "NO_AUTORUN_LABEL"
+        autorun_label = ""
 
     backup_disk(autorun_label, drive, img_burn_exe, output_folder)
 
