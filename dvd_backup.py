@@ -42,11 +42,11 @@ def save_to_iso(img_burn_exe: str, drive: str, output_file: str):
     proc = subprocess.Popen(params, shell=True)
     proc.wait()
     status = proc.poll()
-    print(f"Status: {status}")
+    logging.debug(f"Status: {status}")
     if status:
         raise ValueError(f"Status error: {status}")
     else:
-        print("All fine")
+        logging.debug("All fine")
 
 
 def list_files_in_drive(drive_letter):
@@ -74,8 +74,8 @@ def process_drive(img_burn_exe: str, drive: str, output_folder: str):
 
         print(f"autorun label: {autorun_label}")
         print(f"Standard label: {label}")
-        print(f"List of files: {files}")
         text_for_files = "\r\n".join(str(file) for file in files)
+        print(f"List of files: {text_for_files}")
         files_hash = hashlib.md5(text_for_files.encode('utf-8')).hexdigest()
         iso_folder = Path(output_folder) / f"{label}_{files_hash}"
         print(f"Iso folder: {iso_folder}")
@@ -97,5 +97,6 @@ def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, )
+    logging.basicConfig(level=logging.INFO, format="[%(asctime)s]:[%(name)-12s] [%(levelname).1s]: %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S")
     fire.Fire(poll_drive_for_backup)
