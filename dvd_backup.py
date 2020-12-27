@@ -65,7 +65,10 @@ def backup_disk(autorun_label, drive, img_burn_exe, output_folder):
     logging.info(f"Iso folder: {iso_folder}")
     iso_folder.mkdir(parents=True)
     output_file = str(iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso"))
-    save_to_iso(img_burn_exe, drive, output_file=output_file)
+    try:
+        save_to_iso(img_burn_exe, drive, output_file=output_file)
+    except ValueError:
+        return
     (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
 
 
