@@ -26,8 +26,8 @@ def test_drive(current_letter: str):
     try:
         win32file.GetDiskFreeSpaceEx(current_letter)
     except win32api.error as err:
-        if 'The device is not ready.' not in err:
-            print(err)
+        if 'The device is not ready.' not in err.args:
+            logging.error(err)
             raise err
         is_drive_available = False
     else:
