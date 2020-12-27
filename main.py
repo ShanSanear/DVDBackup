@@ -1,3 +1,4 @@
+import logging
 import subprocess
 import time
 from collections import namedtuple
@@ -62,7 +63,10 @@ def process_drive(img_burn_exe: str, drive: str, output_folder: str):
         if autorun_file.is_file():
             parser = ConfigParser()
             parser.read_string(autorun_file.read_text(encoding='utf-8').lower())
-            autorun_label = parser['autorun']['label'].upper()
+            if 'label' in parser['autorun']:
+                autorun_label = parser['autorun']['label'].upper()
+            else:
+                autorun_label = "NO_AUTORUN_LABEL"
         else:
             autorun_label = "NO_AUTORUN_LABEL"
 
@@ -91,4 +95,5 @@ def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, )
     fire.Fire(poll_drive_for_backup)
