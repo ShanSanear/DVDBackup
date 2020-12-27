@@ -61,8 +61,8 @@ def process_drive(img_burn_exe:Path, drive: str, output_folder: Path):
         autorun_file = Path(f"{drive}Autorun.inf")
         if autorun_file.is_file():
             parser = ConfigParser()
-            parser.read_string(autorun_file.read_text(encoding='utf-8'))
-            autorun_label = parser['autorun']['label']
+            parser.read_string(autorun_file.read_text(encoding='utf-8').lower())
+            autorun_label = parser['autorun']['label'].upper()
         else:
             autorun_label = "NO_AUTORUN_LABEL"
 
