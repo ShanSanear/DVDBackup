@@ -97,6 +97,6 @@ def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format="[%(asctime)s]:[%(name)-12s] [%(levelname).1s]: %(message)s",
+    logging.basicConfig(level=logging.INFO, format="[%(asctime)s][%(levelname).1s]: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S")
     fire.Fire(poll_drive_for_backup)
