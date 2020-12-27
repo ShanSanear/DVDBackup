@@ -6,7 +6,6 @@ from pathlib import Path
 from configparser import ConfigParser
 import hashlib
 
-import pywintypes
 import win32api
 import win32file
 
@@ -54,23 +53,9 @@ def list_files_in_drive(drive_letter):
 
 
 # noinspection PyUnresolvedReferences
-def process_drive(img_burn_exe: str, drive: str, output_folder: str):
-    if not test_drive(drive):
-        logging.info("Waiting for drive: %s to be ready", drive)
-        return
+def backup_disk(autorun_label, drive, img_burn_exe, output_folder):
     label = get_volume_label(f"{drive}\\")
     files = list_files_in_drive(drive)
-    autorun_file = Path(f"{drive}Autorun.inf")
-    if autorun_file.is_file():
-        parser = ConfigParser()
-        parser.read_string(autorun_file.read_text(encoding='utf-8').lower())
-        if 'label' in parser['autorun']:
-            autorun_label = parser['autorun']['label'].upper()
-        else:
-            autorun_label = "NO_AUTORUN_LABEL"
-    else:
-        autorun_label = "NO_AUTORUN_LABEL"
-
     logging.info(f"autorun label: {autorun_label}")
     logging.info(f"Standard label: {label}")
     text_for_files = "\r\n".join(str(file) for file in files)
@@ -82,6 +67,24 @@ def process_drive(img_burn_exe: str, drive: str, output_folder: str):
     output_file = str(iso_folder / Path(f"{label}_{autorun_label}").with_suffix(".iso"))
     save_to_iso(img_burn_exe, drive, output_file=output_file)
     (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
+
+
+def process_drive(img_burn_exe: str, drive: str, output_folder: str):
+    if not test_drive(drive):
+        logging.info("Waiting for drive: %s to be ready", drive)
+        return
+    autorun_file = Path(f"{drive}Autorun.inf")
+    if autorun_file.is_file():
+        parser = ConfigParser()
+        parser.read_string(autorun_file.read_text(encoding='utf-8').lower())
+        if 'label' in parser['autorun']:
+            autorun_label = parser['autorun']['label'].upper()
+        else:
+            autorun_label = "NO_AUTORUN_LABEL"
+    else:
+        autorun_label = "NO_AUTORUN_LABEL"
+
+    backup_disk(autorun_label, drive, img_burn_exe, output_folder)
 
 
 def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str):
