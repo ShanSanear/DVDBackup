@@ -56,7 +56,7 @@ def list_files_in_drive(drive_letter):
 # noinspection PyUnresolvedReferences
 def process_drive(img_burn_exe: str, drive: str, output_folder: str):
     if not test_drive(drive):
-        print(f"Drive is not ready yet...")
+        logging.info("Waiting for drive: %s to be ready", drive)
         return
     try:
         label = get_volume_label(f"{drive}\\")
@@ -85,9 +85,9 @@ def process_drive(img_burn_exe: str, drive: str, output_folder: str):
         (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
 
     except pywintypes.error as err:
-        print(err)
+        logging.debug(err)
     except ValueError as err:
-        print(err)
+        logging.debug(err)
 
 
 def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str):
