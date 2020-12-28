@@ -86,7 +86,7 @@ def backup_disk(autorun_label, drive, img_burn_exe, output_folder):
     files = list_files_in_drive(drive)
     logging.info(f"autorun label: {autorun_label}")
     logging.info(f"Standard label: {label}")
-    text_for_files = "\r\n".join(str(file) for file in files)
+    text_for_files = "\n".join(str(file) for file in files)
     logging.debug(f"List of files: {text_for_files}")
     files_hash = hashlib.md5(text_for_files.encode('utf-8')).hexdigest()
     iso_folder = Path(output_folder) / f"{label}_{files_hash}"
