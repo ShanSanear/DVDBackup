@@ -1,3 +1,4 @@
 pywin32
 pywin32-stubs
 fire
+charset_normalizer

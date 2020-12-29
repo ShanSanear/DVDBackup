@@ -3,12 +3,14 @@ import subprocess
 import time
 from collections import namedtuple
 from pathlib import Path
-from configparser import ConfigParser
+from configparser import ConfigParser, DuplicateOptionError
 import hashlib
 from typing import List
 
 import win32api
 import win32file
+
+from charset_normalizer import CharsetNormalizerMatches as CnM
 
 import fire
 
@@ -101,7 +103,7 @@ def backup_disk(autorun_label, drive, img_burn_exe, output_folder):
         save_to_iso(img_burn_exe, drive, output_file=output_file)
     except ValueError:
         return
-    (iso_folder / "list_of_files.txt").write_text(data=text_for_files)
+    (iso_folder / "list_of_files.txt").write_text(data=text_for_files, encoding='utf-8')
 
 
 def process_drive(img_burn_exe: str, drive: str, output_folder: str):
@@ -116,15 +118,18 @@ def process_drive(img_burn_exe: str, drive: str, output_folder: str):
         logging.info("Waiting for drive: %s to be ready", drive)
         return
     autorun_file = Path(f"{drive}Autorun.inf")
+    autorun_label = ""
     if autorun_file.is_file():
         parser = ConfigParser()
-        parser.read_string(autorun_file.read_text(encoding='utf-8').lower())
-        if 'label' in parser['autorun']:
-            autorun_label = parser['autorun']['label'].upper()
+        encoding = CnM.from_path(autorun_file).best().first().encoding
+        logging.debug("Detected autorun.inf encoding: %s", encoding)
+        try:
+            parser.read_string(autorun_file.read_text(encoding=encoding).lower())
+        except DuplicateOptionError as err:
+            pass
         else:
-            autorun_label = ""
-    else:
-        autorun_label = ""
+            if 'label' in parser['autorun']:
+                autorun_label = parser['autorun']['label'].upper()
 
     backup_disk(autorun_label, drive, img_burn_exe, output_folder)
 
@@ -142,6 +147,6 @@ def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str) -> 
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format="[%(asctime)s][%(levelname).1s]: %(message)s",
+    logging.basicConfig(level=logging.DEBUG, format="[%(asctime)s][%(levelname).1s]: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S")
     fire.Fire(poll_drive_for_backup)
