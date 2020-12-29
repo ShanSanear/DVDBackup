@@ -14,7 +14,7 @@ from charset_normalizer import CharsetNormalizerMatches as CnM
 
 import fire
 
-TIMEOUT_SLEEP = 5
+POLLING_DELAY = 5
 
 VolumeInformation = namedtuple("VolumeInformation", "Label info1 info2 info3 type")
 
@@ -143,7 +143,7 @@ def poll_drive_for_backup(img_burn_exe: str, drive: str, output_folder: str) -> 
     """
     while True:
         process_drive(img_burn_exe, drive, output_folder=output_folder)
-        time.sleep(TIMEOUT_SLEEP)
+        time.sleep(POLLING_DELAY)
 
 
 if __name__ == '__main__':
