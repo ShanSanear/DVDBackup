@@ -102,6 +102,7 @@ def backup_disk(autorun_label, drive, img_burn_exe, output_folder):
     try:
         save_to_iso(img_burn_exe, drive, output_file=output_file)
     except ValueError:
+        logging.error("There was an error processing current disk")
         return
     (iso_folder / "list_of_files.txt").write_text(data=text_for_files, encoding='utf-8')
 
