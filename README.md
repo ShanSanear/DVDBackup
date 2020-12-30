@@ -8,7 +8,7 @@ Works only on Windows due to used libraries.
 
 `pip install -r requirements.txt`
 
-`python dvd_backup.py path_to_img_burn_exe D: path_to_output_folder`
+`python dvd_backup.py path_to_img_burn_exe drive_letter: path_to_output_folder`
 
 ## How it works
 
